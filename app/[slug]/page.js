@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { LoaderCircle } from 'lucide-react';
-import { generateLandingPageHTML } from '@/app/utils/template'; // Vamos criar este ficheiro a seguir
+// CORREÇÃO: Alterado o caminho para ser relativo
+import { generateLandingPageHTML } from '../utils/template'; 
 
 const Page = ({ params }) => {
   const [pageData, setPageData] = useState(null);
@@ -66,5 +67,3 @@ const Page = ({ params }) => {
 };
 
 export default Page;
-
-// NOTE: We need to create the generateLandingPageHTML utility function.
