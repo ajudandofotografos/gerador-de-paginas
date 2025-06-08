@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
-import { Sparkles, Palette, UserCircle, Image as ImageIcon, GalleryVertical, Contact, UploadCloud, PlusCircle, BrainCircuit, Wand2, LoaderCircle } from 'lucide-react';
+// CORREÇÃO: Adicionados os ícones em falta
+import { Sparkles, Palette, UserCircle, Image as ImageIcon, GalleryVertical, Contact, UploadCloud, PlusCircle, BrainCircuit, Wand2, LoaderCircle, Video, List, FileQuestion } from 'lucide-react';
 
 // --- STYLES ---
 const GlobalStyles = () => (
@@ -267,7 +268,7 @@ export default function Page() {
         setModal({ isOpen: true, message: 'O campo "Nome do Estúdio" é obrigatório.'});
         return;
     }
-     if (galleryPhotoUrls.length < 1) { // A galeria pode estar vazia
+     if (galleryPhotoUrls.length < 1) {
         setModal({ isOpen: true, message: 'Por favor, adicione pelo menos uma foto à galeria.'});
         return;
     }
@@ -302,7 +303,7 @@ export default function Page() {
         
         const rootDomain = window.location.host.includes('localhost') ? 'propostalab.app' : window.location.host.split('.').slice(-2).join('.');
         const pageUrl = `https://${result.slug}.${rootDomain}`;
-        // CORREÇÃO: Usa aspas simples dentro do atributo href
+        // CORREÇÃO FINAL: Usa aspas simples dentro do atributo href para evitar erro do linter da Vercel
         const successMessage = `Página guardada com sucesso! <br><br> <a href='${pageUrl}' target='_blank' class='text-[#bb9978] font-bold hover:underline'>Visite a sua página em ${pageUrl}</a>`;
         setModal({ isOpen: true, message: successMessage });
 
