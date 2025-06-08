@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { LoaderCircle } from 'lucide-react';
-// CORREÇÃO FINAL: Usar o alias de caminho definido em jsconfig.json
-import { generateLandingPageHTML } from '@/app/utils/template'; 
+// CORREÇÃO FINAL: Usar um caminho relativo direto
+import { generateLandingPageHTML } from '../utils/template.js'; 
 
 const Page = ({ params }) => {
   const [pageData, setPageData] = useState(null);
@@ -51,7 +51,6 @@ const Page = ({ params }) => {
   }
 
   if (pageData) {
-    // Para injetar o HTML da página gerada
     return (
       <>
         <Head>
