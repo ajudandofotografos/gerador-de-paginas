@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
+import Link from 'next/link'; // Importa o componente Link
 import { LoaderCircle } from 'lucide-react';
-// CORREÇÃO: Importar o novo template
 import { generateGerginPageHTML } from '../utils/template-gergin.js'; 
 
 const Page = ({ params }) => {
@@ -46,13 +45,13 @@ const Page = ({ params }) => {
         <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
             <h1 className="text-4xl font-bold text-red-500">Erro 404</h1>
             <p className="mt-4 text-xl">Página não encontrada.</p>
+            {/* CORREÇÃO: Usa o componente Link em vez da tag <a> */}
             <Link href="/" className="mt-8 px-4 py-2 bg-[#bb9978] rounded-lg text-white">Voltar ao Início</Link>
         </div>
     );
   }
 
   if (pageData) {
-    // CORREÇÃO: Usa a nova função para gerar o HTML
     return (
       <>
         <Head>
