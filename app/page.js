@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { Sparkles, Palette, UserCircle, Image as ImageIcon, GalleryVertical, Contact, UploadCloud, PlusCircle, BrainCircuit, Wand2, LoaderCircle } from 'lucide-react';
+import { Sparkles, Palette, UserCircle, Image as ImageIcon, GalleryVertical, Contact, UploadCloud, PlusCircle, BrainCircuit, Wand2, LoaderCircle, Video, FileQuestion, List } from 'lucide-react';
 
 // --- STYLES ---
 const GlobalStyles = () => (
@@ -95,9 +95,11 @@ const Sidebar = () => {
         { id: 'section-1', name: 'Estilo e Nicho', icon: <Sparkles className="mr-3 w-5 h-5" /> },
         { id: 'section-2', name: 'Identidade Visual', icon: <Palette className="mr-3 w-5 h-5" /> },
         { id: 'section-3', name: 'Conteúdo Principal', icon: <UserCircle className="mr-3 w-5 h-5" /> },
-        { id: 'section-4', name: 'Fotos para Capa', icon: <ImageIcon className="mr-3 w-5 h-5" /> },
-        { id: 'section-5', name: 'Fotos da Galeria', icon: <GalleryVertical className="mr-3 w-5 h-5" /> },
-        { id: 'section-6', name: 'Contato e Redes', icon: <Contact className="mr-3 w-5 h-5" /> },
+        { id: 'section-new-1', name: 'Mídia do Template', icon: <Video className="mr-3 w-5 h-5" /> },
+        { id: 'section-new-2', name: 'Serviços', icon: <List className="mr-3 w-5 h-5" /> },
+        { id: 'section-new-3', name: 'FAQ', icon: <FileQuestion className="mr-3 w-5 h-5" /> },
+        { id: 'section-4', name: 'Galeria', icon: <GalleryVertical className="mr-3 w-5 h-5" /> },
+        { id: 'section-5', name: 'Contato e Redes', icon: <Contact className="mr-3 w-5 h-5" /> },
     ];
     return(
         <aside className="lg:col-span-1">
@@ -125,10 +127,10 @@ const FormSection = ({ id, title, icon, children }) => (
     </section>
 );
 
-const Input = ({ id, label, placeholder, value, onChange, type = 'text', ...props }) => (
+const Input = ({ id, label, placeholder, value, onChange, type = 'text', name, ...props }) => (
     <div>
         <label htmlFor={id} className="font-semibold block mb-1 text-gray-300">{label}</label>
-        <input type={type} id={id} name={id} placeholder={placeholder} value={value} onChange={onChange} className="w-full p-3 bg-[#282828] border border-[#b19f8e] rounded-lg text-white focus:ring-2 focus:ring-custom placeholder-gray-500" {...props} />
+        <input type={type} id={id} name={name || id} placeholder={placeholder} value={value} onChange={onChange} className="w-full p-3 bg-[#282828] border border-[#b19f8e] rounded-lg text-white focus:ring-2 focus:ring-custom placeholder-gray-500" {...props} />
     </div>
 );
 
@@ -169,21 +171,21 @@ export default function Page() {
     niche: 'Casamentos',
     style: '',
     primaryColor: '#bb9978',
-    borderStyle: 'rounded-xl',
     slogan: '',
     about: '',
-    workflow: '',
     whatsapp: '',
     instagram: '',
     facebook: '',
+    marqueeTexts: 'ensaio fotográfico, casamento, retrato corporativo, eventos, newborn',
+    heroVideoUrl: '',
   });
   
   const [logoUrl, setLogoUrl] = useState('');
-  const [coverPhotoUrls, setCoverPhotoUrls] = useState([]);
+  const [aboutImageUrl, setAboutImageUrl] = useState('');
   const [galleryPhotoUrls, setGalleryPhotoUrls] = useState([]);
+  const [services, setServices] = useState([{id: 1, title: '', description: ''}]);
+  const [faqs, setFaqs] = useState([{id: 1, question: '', answer: ''}]);
   
-  const [testimonials, setTestimonials] = useState([]);
-  const [mainCoverIndex, setMainCoverIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [modal, setModal] = useState({ isOpen: false, message: ''});
   
@@ -191,6 +193,24 @@ export default function Page() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  const handleListChange = (index, event, list, setter) => {
+    const { name, value } = event.target;
+    const newList = [...list];
+    newList[index][name] = value;
+    setter(newList);
+  };
+  
+  const addListItem = (setter) => {
+    setter(prev => [...prev, {id: Date.now(), title: '', description: ''}]);
+  }
+  const addFaqItem = (setter) => {
+    setter(prev => [...prev, {id: Date.now(), question: '', answer: ''}]);
+  }
+
+  const removeListItem = (id, setter) => {
+    setter(prev => prev.filter(item => item.id !== id));
+  }
   
   const uploadFile = async (file) => {
     const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${file.name.replace(/\s+/g, '-')}`;
@@ -206,19 +226,18 @@ export default function Page() {
       }
       return newBlob;
     } catch (error) {
-      console.error('Erro no upload:', error);
-      setModal({ isOpen: true, message: `Falha no upload da imagem: ${error.message}`});
+      setModal({ isOpen: true, message: `Falha no upload: ${error.message}`});
       throw error;
     }
   };
 
-  const handleSingleUpload = async (e) => {
+  const handleSingleUpload = async (e, setter) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setIsLoading(true);
     try {
       const blob = await uploadFile(file);
-      setLogoUrl(blob.url);
+      setter(blob.url);
     } catch (error) {
       // O modal de erro já é mostrado dentro de uploadFile
     } finally {
@@ -229,7 +248,6 @@ export default function Page() {
   const handleMultipleUpload = async (e, setter) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-
     setIsLoading(true);
     try {
       await Promise.all(files.map(async (file) => {
@@ -242,48 +260,10 @@ export default function Page() {
       setIsLoading(false);
     }
   };
-
-  const addTestimonial = () => {
-      setTestimonials(prev => [...prev, {id: Date.now(), name: '', text: ''}]);
-  };
-
-  const updateTestimonial = (index, field, value) => {
-      setTestimonials(prev => {
-          const newTestimonials = [...prev];
-          newTestimonials[index][field] = value;
-          return newTestimonials;
-      });
-  };
-
-  const removeTestimonial = (id) => {
-      setTestimonials(prev => prev.filter(t => t.id !== id));
-  };
-  
-  const removePhoto = (id, from) => {
-      if (from === 'cover') {
-          setCoverPhotoUrls(prev => prev.filter(p => p.id !== id));
-          if(mainCoverIndex >= coverPhotoUrls.length -1) setMainCoverIndex(0);
-      } else {
-          setGalleryPhotoUrls(prev => prev.filter(p => p.id !== id));
-      }
-  };
-
-  const generateWithAI = () => {
-      setFormData(prev => ({
-          ...prev,
-          slogan: `Eternizando a arte dos seus momentos mais ${prev.style || 'emocionantes'}.`,
-          about: `Olá! Sou especialista em fotografia de ${prev.niche} e apaixonado(a) por contar histórias através de imagens. Meu estilo ${prev.style || 'emocionante'} busca capturar a verdadeira emoção e a beleza única de cada instante, transformando memórias em tesouros para toda a vida.`,
-          workflow: `1. Bate-papo inicial: Vamos conversar sobre suas ideias e expectativas.\n2. O ensaio: Um dia leve e divertido para criar imagens incríveis.\n3. Galeria online: Você receberá um link para sua galeria privada com as fotos tratadas em alta resolução.`
-      }));
-  };
   
   const handleGeneratePage = async () => {
     if (!formData.name) {
-        setModal({ isOpen: true, message: 'O campo "Nome do Estúdio" é obrigatório para criar o link.'});
-        return;
-    }
-     if (coverPhotoUrls.length === 0 || galleryPhotoUrls.length < 5) {
-        setModal({ isOpen: true, message: 'Por favor, envie pelo menos 1 foto de capa e 5 fotos para a galeria.'});
+        setModal({ isOpen: true, message: 'O campo "Nome do Estúdio" é obrigatório.'});
         return;
     }
     
@@ -291,26 +271,30 @@ export default function Page() {
 
     const slug = formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     
-    const finalData = { ...formData, logoUrl, coverPhotoUrls, galleryPhotoUrls, testimonials, mainCoverIndex };
+    const finalData = { 
+        ...formData, 
+        logoUrl,
+        aboutImageUrl,
+        galleryPhotoUrls, 
+        services: services.filter(s => s.title && s.description), // Só envia serviços preenchidos
+        faqs: faqs.filter(f => f.question && f.answer), // Só envia FAQs preenchidos
+        marqueeTexts: formData.marqueeTexts.split(',').map(text => text.trim()), // Converte string em array
+    };
 
     try {
         const response = await fetch('/api/pages', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ pageData: finalData, slug }),
         });
 
         if (!response.ok) {
             const errorResult = await response.json();
-            throw new Error(errorResult.error || 'Falha ao criar a página. Tente novamente.');
+            throw new Error(errorResult.error || 'Falha ao criar a página.');
         }
 
         const result = await response.json();
-        
-        // CORREÇÃO: Constrói a URL do subdomínio
-        const rootDomain = "propostalab.app"; // O seu domínio principal
+        const rootDomain = window.location.host.split('.').slice(-2).join('.'); // Ex: propostalab.app
         const pageUrl = `https://${result.slug}.${rootDomain}`;
         const successMessage = `Página guardada com sucesso! <br><br> <a href="${pageUrl}" target="_blank" class="text-[#bb9978] font-bold hover:underline">Visite a sua página em ${pageUrl}</a>`;
         setModal({ isOpen: true, message: successMessage });
@@ -327,92 +311,80 @@ export default function Page() {
       <GlobalStyles />
       <Header />
       <main className="container mx-auto px-4 py-8">
-        <p className="text-center mb-8 text-lg text-gray-400">Preencha os campos abaixo para criar sua landing page personalizada.</p>
+        <p className="text-center mb-8 text-lg text-gray-400">Preencha os campos para criar a sua nova página de fotógrafo.</p>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <Sidebar/>
             <div className="lg:col-span-3 space-y-8">
-              <FormSection id="section-1" title="1. Estilo e Nicho" icon={<Sparkles />}>
+              <FormSection id="section-1" title="1. Informações Básicas" icon={<Sparkles />}>
                   <div className="space-y-4">
-                    <Input id="name" name="name" label="Seu Nome ou Nome do Estúdio" placeholder="Ex: João Silva Fotografia" value={formData.name} onChange={handleChange} />
-                    <Select id="niche" name="niche" label="Qual seu principal nicho de fotografia?" value={formData.niche} onChange={handleChange}>
-                        {niches.map(n => <option key={n}>{n}</option>)}
-                    </Select>
-                    <Input id="style" name="style" label="Descreva seu estilo em poucas palavras:" placeholder="Ex: Artístico, Clássico, Vibrante, Minimalista" value={formData.style} onChange={handleChange} />
+                    <Input id="name" name="name" label="Nome do Fotógrafo / Estúdio" placeholder="Ex: João Silva Fotografia" value={formData.name} onChange={handleChange} />
+                    <Input id="slogan" name="slogan" label="Slogan (frase de impacto)" placeholder="Ex: Capturando a essência dos seus momentos" value={formData.slogan} onChange={handleChange} />
+                    <Textarea id="about" name="about" label="Sobre Você" placeholder="Conte sua história, sua paixão pela fotografia..." value={formData.about} onChange={handleChange} />
                   </div>
               </FormSection>
               
               <FormSection id="section-2" title="2. Identidade Visual" icon={<Palette />}>
-                    <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                           <label className="font-semibold block mb-2 text-gray-300">Seu Logotipo</label>
-                            <label className="w-full h-40 border-2 border-dashed border-[#b19f8e] rounded-lg flex items-center justify-center bg-[#282828] text-gray-500 relative cursor-pointer hover:bg-gray-700">
-                               {logoUrl ? <img src={logoUrl} alt="Prévia do Logo" className="max-w-full max-h-full object-contain p-2"/> : 
-                                <div className="text-center">
-                                    <UploadCloud className="mx-auto w-10 h-10"/>
-                                    <p>Clique para enviar</p>
-                                </div>
-                               }
-                                <input type="file" className="hidden" onChange={handleSingleUpload} />
-                           </label>
-                        </div>
-                         <div className="space-y-4">
-                           <Input type="color" id="primaryColor" name="primaryColor" label="Cor Principal" value={formData.primaryColor} onChange={handleChange} />
-                           <Select id="borderStyle" name="borderStyle" label="Estilo dos Elementos" value={formData.borderStyle} onChange={handleChange}>
-                               <option value="rounded-xl">Arredondado</option>
-                               <option value="rounded-none">Reto</option>
-                           </Select>
-                        </div>
-                    </div>
-              </FormSection>
-
-              <FormSection id="section-3" title="3. Conteúdo Principal" icon={<UserCircle/>}>
-                    <div className="flex justify-end mb-6">
-                        <button onClick={generateWithAI} className="bg-[#bb9978] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#a1866a] transition duration-300 text-sm flex items-center">
-                            <BrainCircuit className="w-4 h-4 mr-2" />Gerar com IA
-                        </button>
-                    </div>
-                    <div className="space-y-6">
-                       <Input id="slogan" name="slogan" label="Frase de Impacto (para a capa)" placeholder="Ex: Capturando a essência..." value={formData.slogan} onChange={handleChange} />
-                       <Textarea id="about" name="about" label="Apresentação (Sobre você)" placeholder="Conte sua história..." value={formData.about} onChange={handleChange} />
-                       <Textarea id="workflow" name="workflow" label="Como funciona seu trabalho (passo a passo)" placeholder="Descreva seu processo..." value={formData.workflow} onChange={handleChange} />
-                       <div>
-                            <h3 className="font-semibold mb-2 text-gray-300">Depoimentos de Clientes</h3>
-                            <div id="testimonials-container" className="space-y-4">
-                               {testimonials.map((t, index) => (
-                                    <div key={t.id} className="p-3 border border-[#b19f8e] rounded-lg bg-[#282828] space-y-2">
-                                        <input type="text" placeholder="Nome do Cliente" value={t.name} onChange={e => updateTestimonial(index, 'name', e.target.value)} className="w-full p-2 bg-gray-700 border border-[#b19f8e] rounded-md text-white placeholder-gray-500" />
-                                        <textarea placeholder="Depoimento do cliente..." value={t.text} onChange={e => updateTestimonial(index, 'text', e.target.value)} rows="3" className="w-full p-2 bg-gray-700 border border-[#b19f8e] rounded-md text-white placeholder-gray-500"></textarea>
-                                        <button onClick={() => removeTestimonial(t.id)} className="text-red-500 text-sm hover:text-red-400">Remover</button>
-                                    </div>
-                               ))}
-                            </div>
-                            <button onClick={addTestimonial} className="mt-2 bg-gray-700 text-gray-200 font-semibold py-2 px-4 rounded-lg hover:bg-gray-600 transition text-sm">Adicionar Depoimento</button>
-                       </div>
-                    </div>
-              </FormSection>
-
-              <FormSection id="section-4" title="4. Fotos para Capa e Fundos" icon={<ImageIcon />}>
-                  <p className="mb-4 text-gray-400">Envie de 1 a 5 fotos. Clique em uma foto para selecioná-la como capa.</p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {coverPhotoUrls.map((photo, index) => (
-                          <div key={photo.id} className="image-preview-item aspect-video">
-                              <img src={photo.url} className="w-full h-full object-cover" />
-                              {index === mainCoverIndex && <div className="main-cover-indicator"><Sparkles size={16} /></div>}
-                              <div className="overlay">
-                                <button onClick={() => setMainCoverIndex(index)}>Definir Capa</button>
-                                <button onClick={() => removePhoto(photo.id, 'cover')}>Excluir</button>
-                              </div>
+                  <div>
+                     <label className="font-semibold block mb-2 text-gray-300">Seu Logotipo (Opcional)</label>
+                      <label className="w-48 h-48 border-2 border-dashed border-[#b19f8e] rounded-lg flex items-center justify-center bg-[#282828] text-gray-500 relative cursor-pointer hover:bg-gray-700">
+                         {logoUrl ? <img src={logoUrl} alt="Prévia do Logo" className="max-w-full max-h-full object-contain p-2"/> : 
+                          <div className="text-center">
+                              <UploadCloud className="mx-auto w-10 h-10"/>
+                              <p>Clique para enviar</p>
                           </div>
-                      ))}
-                      <label className="w-full h-40 border-2 border-dashed border-[#b19f8e] rounded-lg flex items-center justify-center bg-[#282828] text-gray-500 cursor-pointer hover:bg-gray-700 transition">
-                          <div className="text-center"><PlusCircle className="mx-auto w-10 h-10" /><p>Adicionar fotos</p></div>
-                          <input type="file" className="hidden" multiple onChange={(e) => handleMultipleUpload(e, setCoverPhotoUrls)}/>
-                      </label>
+                         }
+                          <input type="file" className="hidden" onChange={(e) => handleSingleUpload(e, setLogoUrl)} />
+                     </label>
+                  </div>
+              </FormSection>
+
+              <FormSection id="section-new-1" title="3. Mídia e Textos do Template" icon={<Video />}>
+                  <div className="space-y-4">
+                     <Input id="heroVideoUrl" name="heroVideoUrl" label="URL do Vídeo de Fundo (Hero)" placeholder="https://videos.pexels.com/..." value={formData.heroVideoUrl} onChange={handleChange} />
+                     <div>
+                        <label className="font-semibold block mb-2 text-gray-300">Foto para a Secção "Sobre Mim"</label>
+                        <label className="w-48 h-64 border-2 border-dashed border-[#b19f8e] rounded-lg flex items-center justify-center bg-[#282828] text-gray-500 relative cursor-pointer hover:bg-gray-700">
+                             {aboutImageUrl ? <img src={aboutImageUrl} alt="Foto sobre" className="w-full h-full object-cover rounded-lg"/> : 
+                              <div className="text-center p-2">
+                                  <ImageIcon className="mx-auto w-10 h-10"/>
+                                  <p>Foto Sobre</p>
+                              </div>
+                             }
+                            <input type="file" className="hidden" onChange={(e) => handleSingleUpload(e, setAboutImageUrl)} />
+                        </label>
+                     </div>
+                     <Input id="marqueeTexts" name="marqueeTexts" label="Textos para a Faixa Animada (separados por vírgula)" value={formData.marqueeTexts} onChange={handleChange} />
+                  </div>
+              </FormSection>
+
+              <FormSection id="section-new-2" title="4. Serviços Oferecidos" icon={<List />}>
+                  <div className="space-y-4">
+                     {services.map((service, index) => (
+                        <div key={service.id} className="p-4 border border-[#b19f8e] rounded-lg bg-[#282828] space-y-3 relative">
+                            <Input id={`service-title-${index}`} name="title" label={`Título do Serviço ${index + 1}`} value={service.title} onChange={e => handleListChange(index, e, services, setServices)} />
+                            <Textarea id={`service-desc-${index}`} name="description" label="Descrição do Serviço" value={service.description} onChange={e => handleListChange(index, e, services, setServices)} rows={3} />
+                            {services.length > 1 && <button onClick={() => removeListItem(service.id, setServices)} className="absolute top-2 right-2 text-red-500 hover:text-red-400">&times;</button>}
+                        </div>
+                     ))}
+                     <button onClick={() => addListItem(setServices)} className="mt-2 bg-gray-700 text-gray-200 font-semibold py-2 px-4 rounded-lg hover:bg-gray-600 transition text-sm">Adicionar Serviço</button>
                   </div>
               </FormSection>
               
-              <FormSection id="section-5" title="5. Fotos da Galeria" icon={<GalleryVertical />}>
-                    <p className="mb-4 text-gray-400">Envie entre 10 e 40 fotos. Elas podem ser horizontais ou verticais.</p>
+               <FormSection id="section-new-3" title="5. Perguntas Frequentes (FAQ)" icon={<FileQuestion />}>
+                  <div className="space-y-4">
+                     {faqs.map((faq, index) => (
+                        <div key={faq.id} className="p-4 border border-[#b19f8e] rounded-lg bg-[#282828] space-y-3 relative">
+                            <Input id={`faq-q-${index}`} name="question" label={`Pergunta ${index + 1}`} value={faq.question} onChange={e => handleListChange(index, e, faqs, setFaqs)} />
+                            <Textarea id={`faq-a-${index}`} name="answer" label="Resposta" value={faq.answer} onChange={e => handleListChange(index, e, faqs, setFaqs)} rows={3} />
+                             {faqs.length > 1 && <button onClick={() => removeListItem(faq.id, setFaqs)} className="absolute top-2 right-2 text-red-500 hover:text-red-400">&times;</button>}
+                        </div>
+                     ))}
+                     <button onClick={() => addFaqItem(setFaqs)} className="mt-2 bg-gray-700 text-gray-200 font-semibold py-2 px-4 rounded-lg hover:bg-gray-600 transition text-sm">Adicionar Pergunta</button>
+                  </div>
+              </FormSection>
+
+              <FormSection id="section-4" title="6. Galeria de Fotos" icon={<GalleryVertical />}>
+                    <p className="mb-4 text-gray-400">Envie as melhores fotos para o seu portfólio.</p>
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                          {galleryPhotoUrls.map(photo => (
                           <div key={photo.id} className="image-preview-item aspect-square">
@@ -429,7 +401,7 @@ export default function Page() {
                     </div>
               </FormSection>
 
-              <FormSection id="section-6" title="6. Contato e Redes Sociais" icon={<Contact />}>
+              <FormSection id="section-5" title="7. Contato e Redes Sociais" icon={<Contact />}>
                    <div className="space-y-4">
                        <Input id="whatsapp" name="whatsapp" label="Nº de WhatsApp com DDD" placeholder="Ex: 11912345678" value={formData.whatsapp} onChange={handleChange} />
                        <Input id="instagram" name="instagram" label="Usuário do Instagram (sem @)" placeholder="Ex: joaosilvafotografia" value={formData.instagram} onChange={handleChange} />
