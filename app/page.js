@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { Sparkles, Palette, UserCircle, Image as ImageIcon, GalleryVertical, Contact, UploadCloud, PlusCircle, BrainCircuit, Wand2, LoaderCircle, Video, FileQuestion, List } from 'lucide-react';
+import { Sparkles, Palette, UserCircle, Image as ImageIcon, GalleryVertical, Contact, UploadCloud, PlusCircle, BrainCircuit, Wand2, LoaderCircle } from 'lucide-react';
 
 // --- STYLES ---
 const GlobalStyles = () => (
@@ -231,13 +231,13 @@ export default function Page() {
     }
   };
 
-  const handleSingleUpload = async (e, setter) => {
+  const handleSingleUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setIsLoading(true);
     try {
       const blob = await uploadFile(file);
-      setter(blob.url);
+      setLogoUrl(blob.url);
     } catch (error) {
       // O modal de erro já é mostrado dentro de uploadFile
     } finally {
@@ -248,6 +248,7 @@ export default function Page() {
   const handleMultipleUpload = async (e, setter) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
+
     setIsLoading(true);
     try {
       await Promise.all(files.map(async (file) => {
@@ -266,6 +267,10 @@ export default function Page() {
         setModal({ isOpen: true, message: 'O campo "Nome do Estúdio" é obrigatório.'});
         return;
     }
+     if (galleryPhotoUrls.length < 1) { // A galeria pode estar vazia
+        setModal({ isOpen: true, message: 'Por favor, adicione pelo menos uma foto à galeria.'});
+        return;
+    }
     
     setIsLoading(true);
 
@@ -276,9 +281,9 @@ export default function Page() {
         logoUrl,
         aboutImageUrl,
         galleryPhotoUrls, 
-        services: services.filter(s => s.title && s.description), // Só envia serviços preenchidos
-        faqs: faqs.filter(f => f.question && f.answer), // Só envia FAQs preenchidos
-        marqueeTexts: formData.marqueeTexts.split(',').map(text => text.trim()), // Converte string em array
+        services: services.filter(s => s.title && s.description),
+        faqs: faqs.filter(f => f.question && f.answer),
+        marqueeTexts: formData.marqueeTexts.split(',').map(text => text.trim()),
     };
 
     try {
@@ -294,9 +299,11 @@ export default function Page() {
         }
 
         const result = await response.json();
-        const rootDomain = window.location.host.split('.').slice(-2).join('.'); // Ex: propostalab.app
+        
+        const rootDomain = window.location.host.includes('localhost') ? 'propostalab.app' : window.location.host.split('.').slice(-2).join('.');
         const pageUrl = `https://${result.slug}.${rootDomain}`;
-        const successMessage = `Página guardada com sucesso! <br><br> <a href="${pageUrl}" target="_blank" class="text-[#bb9978] font-bold hover:underline">Visite a sua página em ${pageUrl}</a>`;
+        // CORREÇÃO: Usa aspas simples dentro do atributo href
+        const successMessage = `Página guardada com sucesso! <br><br> <a href='${pageUrl}' target='_blank' class='text-[#bb9978] font-bold hover:underline'>Visite a sua página em ${pageUrl}</a>`;
         setModal({ isOpen: true, message: successMessage });
 
     } catch (error) {
@@ -317,9 +324,9 @@ export default function Page() {
             <div className="lg:col-span-3 space-y-8">
               <FormSection id="section-1" title="1. Informações Básicas" icon={<Sparkles />}>
                   <div className="space-y-4">
-                    <Input id="name" name="name" label="Nome do Fotógrafo / Estúdio" placeholder="Ex: João Silva Fotografia" value={formData.name} onChange={handleChange} />
-                    <Input id="slogan" name="slogan" label="Slogan (frase de impacto)" placeholder="Ex: Capturando a essência dos seus momentos" value={formData.slogan} onChange={handleChange} />
-                    <Textarea id="about" name="about" label="Sobre Você" placeholder="Conte sua história, sua paixão pela fotografia..." value={formData.about} onChange={handleChange} />
+                    <Input name="name" label="Nome do Fotógrafo / Estúdio" placeholder="Ex: João Silva Fotografia" value={formData.name} onChange={handleChange} />
+                    <Input name="slogan" label="Slogan (frase de impacto)" placeholder="Ex: Capturando a essência dos seus momentos" value={formData.slogan} onChange={handleChange} />
+                    <Textarea name="about" label="Sobre Você" placeholder="Conte sua história, sua paixão pela fotografia..." value={formData.about} onChange={handleChange} />
                   </div>
               </FormSection>
               
@@ -333,14 +340,14 @@ export default function Page() {
                               <p>Clique para enviar</p>
                           </div>
                          }
-                          <input type="file" className="hidden" onChange={(e) => handleSingleUpload(e, setLogoUrl)} />
+                          <input type="file" className="hidden" onChange={handleSingleUpload} />
                      </label>
                   </div>
               </FormSection>
 
               <FormSection id="section-new-1" title="3. Mídia e Textos do Template" icon={<Video />}>
                   <div className="space-y-4">
-                     <Input id="heroVideoUrl" name="heroVideoUrl" label="URL do Vídeo de Fundo (Hero)" placeholder="https://videos.pexels.com/..." value={formData.heroVideoUrl} onChange={handleChange} />
+                     <Input name="heroVideoUrl" label="URL do Vídeo de Fundo (Hero)" placeholder="https://videos.pexels.com/..." value={formData.heroVideoUrl} onChange={handleChange} />
                      <div>
                         <label className="font-semibold block mb-2 text-gray-300">Foto para a Secção "Sobre Mim"</label>
                         <label className="w-48 h-64 border-2 border-dashed border-[#b19f8e] rounded-lg flex items-center justify-center bg-[#282828] text-gray-500 relative cursor-pointer hover:bg-gray-700">
@@ -353,7 +360,7 @@ export default function Page() {
                             <input type="file" className="hidden" onChange={(e) => handleSingleUpload(e, setAboutImageUrl)} />
                         </label>
                      </div>
-                     <Input id="marqueeTexts" name="marqueeTexts" label="Textos para a Faixa Animada (separados por vírgula)" value={formData.marqueeTexts} onChange={handleChange} />
+                     <Input name="marqueeTexts" label="Textos para a Faixa Animada (separados por vírgula)" value={formData.marqueeTexts} onChange={handleChange} />
                   </div>
               </FormSection>
 
@@ -361,8 +368,8 @@ export default function Page() {
                   <div className="space-y-4">
                      {services.map((service, index) => (
                         <div key={service.id} className="p-4 border border-[#b19f8e] rounded-lg bg-[#282828] space-y-3 relative">
-                            <Input id={`service-title-${index}`} name="title" label={`Título do Serviço ${index + 1}`} value={service.title} onChange={e => handleListChange(index, e, services, setServices)} />
-                            <Textarea id={`service-desc-${index}`} name="description" label="Descrição do Serviço" value={service.description} onChange={e => handleListChange(index, e, services, setServices)} rows={3} />
+                            <Input name="title" label={`Título do Serviço ${index + 1}`} value={service.title} onChange={e => handleListChange(index, e, services, setServices)} />
+                            <Textarea name="description" label="Descrição do Serviço" value={service.description} onChange={e => handleListChange(index, e, services, setServices)} rows={3} />
                             {services.length > 1 && <button onClick={() => removeListItem(service.id, setServices)} className="absolute top-2 right-2 text-red-500 hover:text-red-400">&times;</button>}
                         </div>
                      ))}
@@ -374,8 +381,8 @@ export default function Page() {
                   <div className="space-y-4">
                      {faqs.map((faq, index) => (
                         <div key={faq.id} className="p-4 border border-[#b19f8e] rounded-lg bg-[#282828] space-y-3 relative">
-                            <Input id={`faq-q-${index}`} name="question" label={`Pergunta ${index + 1}`} value={faq.question} onChange={e => handleListChange(index, e, faqs, setFaqs)} />
-                            <Textarea id={`faq-a-${index}`} name="answer" label="Resposta" value={faq.answer} onChange={e => handleListChange(index, e, faqs, setFaqs)} rows={3} />
+                            <Input name="question" label={`Pergunta ${index + 1}`} value={faq.question} onChange={e => handleListChange(index, e, faqs, setFaqs)} />
+                            <Textarea name="answer" label="Resposta" value={faq.answer} onChange={e => handleListChange(index, e, faqs, setFaqs)} rows={3} />
                              {faqs.length > 1 && <button onClick={() => removeListItem(faq.id, setFaqs)} className="absolute top-2 right-2 text-red-500 hover:text-red-400">&times;</button>}
                         </div>
                      ))}
@@ -388,7 +395,7 @@ export default function Page() {
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                          {galleryPhotoUrls.map(photo => (
                           <div key={photo.id} className="image-preview-item aspect-square">
-                              <img src={photo.url} className="w-full h-full object-cover" />
+                              <img src={photo.url} alt="Foto da galeria" className="w-full h-full object-cover" />
                               <div className="overlay">
                                 <button onClick={() => removePhoto(photo.id, 'gallery')}>Excluir</button>
                               </div>
@@ -403,9 +410,9 @@ export default function Page() {
 
               <FormSection id="section-5" title="7. Contato e Redes Sociais" icon={<Contact />}>
                    <div className="space-y-4">
-                       <Input id="whatsapp" name="whatsapp" label="Nº de WhatsApp com DDD" placeholder="Ex: 11912345678" value={formData.whatsapp} onChange={handleChange} />
-                       <Input id="instagram" name="instagram" label="Usuário do Instagram (sem @)" placeholder="Ex: joaosilvafotografia" value={formData.instagram} onChange={handleChange} />
-                       <Input id="facebook" name="facebook" label="Link da sua página no Facebook (opcional)" placeholder="https://facebook.com/seu.estudio" value={formData.facebook} onChange={handleChange} />
+                       <Input name="whatsapp" label="Nº de WhatsApp com DDD" placeholder="Ex: 11912345678" value={formData.whatsapp} onChange={handleChange} />
+                       <Input name="instagram" label="Usuário do Instagram (sem @)" placeholder="Ex: joaosilvafotografia" value={formData.instagram} onChange={handleChange} />
+                       <Input name="facebook" label="Link da sua página no Facebook (opcional)" placeholder="https://facebook.com/seu.estudio" value={formData.facebook} onChange={handleChange} />
                    </div>
               </FormSection>
 
