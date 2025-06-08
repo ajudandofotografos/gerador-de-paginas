@@ -1,26 +1,69 @@
-@import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+    scroll-behavior: smooth;
+    background-color: #161616;
+    color: #ffffff;
+}
+.image-preview-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.75rem;
+}
+.image-preview-item .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+.image-preview-item:hover .overlay {
+    opacity: 1;
+}
+.image-preview-item .overlay button {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.5);
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 5px;
+    transition: all 0.2s ease;
+}
+.image-preview-item .overlay button:hover {
+     background: rgba(255,255,255,0.9);
+     color: black;
+}
+.main-cover-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: #f59e0b;
+    color: white;
+    padding: 4px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.form-section {
+    scroll-margin-top: 120px;
+}
+#custom-modal .transform {
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+#custom-modal.hidden .transform {
+    transform: scale(0.95);
+    opacity: 0;
+}
+.focus\:ring-custom:focus {
+    --tw-ring-color: #bb9978;
 }
