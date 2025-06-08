@@ -193,7 +193,6 @@ export default function Page() {
   };
   
   const uploadFile = async (file) => {
-    // CORREÇÃO: Cria um nome de ficheiro único para evitar conflitos
     const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${file.name.replace(/\s+/g, '-')}`;
     
     try {
@@ -279,8 +278,12 @@ export default function Page() {
   };
   
   const handleGeneratePage = async () => {
-    if (!formData.name || coverPhotoUrls.length === 0 || galleryPhotoUrls.length < 5) {
-        setModal({ isOpen: true, message: 'Por favor, preencha seu nome e envie pelo menos 1 foto de capa e 5 fotos para a galeria.'});
+    if (!formData.name) {
+        setModal({ isOpen: true, message: 'O campo "Nome do Estúdio" é obrigatório para criar o link.'});
+        return;
+    }
+     if (coverPhotoUrls.length === 0 || galleryPhotoUrls.length < 5) {
+        setModal({ isOpen: true, message: 'Por favor, envie pelo menos 1 foto de capa e 5 fotos para a galeria.'});
         return;
     }
     
@@ -306,8 +309,10 @@ export default function Page() {
 
         const result = await response.json();
         
-        const pageUrl = `${window.location.origin}/${result.slug}`;
-        const successMessage = `Página guardada com sucesso! <br><br> <a href="${pageUrl}" target="_blank" class="text-[#bb9978] font-bold hover:underline">Clique aqui para ver a sua página</a>`;
+        // CORREÇÃO: Constrói a URL do subdomínio
+        const rootDomain = "propostalab.app"; // O seu domínio principal
+        const pageUrl = `https://${result.slug}.${rootDomain}`;
+        const successMessage = `Página guardada com sucesso! <br><br> <a href="${pageUrl}" target="_blank" class="text-[#bb9978] font-bold hover:underline">Visite a sua página em ${pageUrl}</a>`;
         setModal({ isOpen: true, message: successMessage });
 
     } catch (error) {
