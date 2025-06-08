@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Sparkles, Palette, UserCircle, Image as ImageIcon, GalleryVertical, Contact, UploadCloud, PlusCircle, BrainCircuit, Wand2, LoaderCircle } from 'lucide-react';
 
 // --- STYLES ---
@@ -163,7 +163,7 @@ const CustomModal = ({ isOpen, message, onOk}) => {
     );
 }
 
-export default function Page() { // CORREÇÃO: Renomeado de Home para Page
+export default function Page() {
   const [formData, setFormData] = useState({
     name: '',
     niche: 'Casamentos',
@@ -200,12 +200,12 @@ export default function Page() { // CORREÇÃO: Renomeado de Home para Page
       });
       const newBlob = await response.json();
       if (!response.ok) {
-        throw new Error(newBlob.error || 'Falha no upload');
+        throw new Error(newBlob.message || 'Falha no upload');
       }
       return newBlob;
     } catch (error) {
       console.error('Erro no upload:', error);
-      setModal({ isOpen: true, message: "Falha no upload da imagem."});
+      setModal({ isOpen: true, message: `Falha no upload da imagem: ${error.message}`});
       throw error;
     }
   };
@@ -218,7 +218,7 @@ export default function Page() { // CORREÇÃO: Renomeado de Home para Page
       const blob = await uploadFile(file);
       setLogoUrl(blob.url);
     } catch (error) {
-      // Modal is already shown in uploadFile
+      // O modal de erro já é mostrado dentro de uploadFile
     } finally {
       setIsLoading(false);
     }
@@ -230,12 +230,13 @@ export default function Page() { // CORREÇÃO: Renomeado de Home para Page
 
     setIsLoading(true);
     try {
-      for (const file of files) {
+      // Usar Promise.all para fazer os uploads em paralelo
+      await Promise.all(files.map(async (file) => {
         const blob = await uploadFile(file);
         setter(prev => [...prev, { id: blob.url, url: blob.url }]);
-      }
+      }));
     } catch (error) {
-       // Modal is already shown in uploadFile
+       // O modal de erro já é mostrado dentro de uploadFile
     } finally {
       setIsLoading(false);
     }
@@ -303,7 +304,6 @@ export default function Page() { // CORREÇÃO: Renomeado de Home para Page
 
         const result = await response.json();
         
-        // Agora o link é completo e funcional (depois de publicar)
         const pageUrl = `${window.location.origin}/${result.slug}`;
         const successMessage = `Página criada com sucesso! <br><br> <a href="${pageUrl}" target="_blank" class="text-[#bb9978] font-bold hover:underline">Clique aqui para ver a sua página</a>`;
         setModal({ isOpen: true, message: successMessage });
