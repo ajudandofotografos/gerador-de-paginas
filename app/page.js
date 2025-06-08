@@ -193,16 +193,24 @@ export default function Page() {
   };
   
   const uploadFile = async (file) => {
-    const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
-      method: 'POST',
-      body: file,
-    });
+    // CORREÇÃO: Cria um nome de ficheiro único para evitar conflitos
+    const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${file.name.replace(/\s+/g, '-')}`;
     
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error || 'Falha no upload da imagem.');
+    try {
+      const response = await fetch(`/api/upload?filename=${encodeURIComponent(uniqueFilename)}`, {
+        method: 'POST',
+        body: file,
+      });
+      const newBlob = await response.json();
+      if (!response.ok) {
+        throw new Error(newBlob.error || 'Falha no upload');
+      }
+      return newBlob;
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      setModal({ isOpen: true, message: `Falha no upload da imagem: ${error.message}`});
+      throw error;
     }
-    return result;
   };
 
   const handleSingleUpload = async (e) => {
@@ -213,7 +221,7 @@ export default function Page() {
       const blob = await uploadFile(file);
       setLogoUrl(blob.url);
     } catch (error) {
-      setModal({ isOpen: true, message: error.message });
+      // O modal de erro já é mostrado dentro de uploadFile
     } finally {
       setIsLoading(false);
     }
@@ -230,7 +238,7 @@ export default function Page() {
         setter(prev => [...prev, { id: blob.url, url: blob.url }]);
       }));
     } catch (error) {
-       setModal({ isOpen: true, message: error.message });
+       // O modal de erro já é mostrado dentro de uploadFile
     } finally {
       setIsLoading(false);
     }
@@ -299,7 +307,7 @@ export default function Page() {
         const result = await response.json();
         
         const pageUrl = `${window.location.origin}/${result.slug}`;
-        const successMessage = `Página criada com sucesso! <br><br> <a href="${pageUrl}" target="_blank" class="text-[#bb9978] font-bold hover:underline">Clique aqui para ver a sua página</a>`;
+        const successMessage = `Página guardada com sucesso! <br><br> <a href="${pageUrl}" target="_blank" class="text-[#bb9978] font-bold hover:underline">Clique aqui para ver a sua página</a>`;
         setModal({ isOpen: true, message: successMessage });
 
     } catch (error) {
