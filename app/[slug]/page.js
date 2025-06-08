@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { LoaderCircle } from 'lucide-react';
-// CORREÇÃO: Alterado o caminho para ser relativo
-import { generateLandingPageHTML } from '../utils/template'; 
+// CORREÇÃO FINAL: Usar o alias de caminho definido em jsconfig.json
+import { generateLandingPageHTML } from '@/app/utils/template'; 
 
 const Page = ({ params }) => {
   const [pageData, setPageData] = useState(null);
