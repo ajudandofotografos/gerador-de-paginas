@@ -193,21 +193,16 @@ export default function Page() {
   };
   
   const uploadFile = async (file) => {
-    try {
-      const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
-        method: 'POST',
-        body: file,
-      });
-      const newBlob = await response.json();
-      if (!response.ok) {
-        throw new Error(newBlob.message || 'Falha no upload');
-      }
-      return newBlob;
-    } catch (error) {
-      console.error('Erro no upload:', error);
-      setModal({ isOpen: true, message: `Falha no upload da imagem: ${error.message}`});
-      throw error;
+    const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+      method: 'POST',
+      body: file,
+    });
+    
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Falha no upload da imagem.');
     }
+    return result;
   };
 
   const handleSingleUpload = async (e) => {
@@ -218,7 +213,7 @@ export default function Page() {
       const blob = await uploadFile(file);
       setLogoUrl(blob.url);
     } catch (error) {
-      // O modal de erro já é mostrado dentro de uploadFile
+      setModal({ isOpen: true, message: error.message });
     } finally {
       setIsLoading(false);
     }
@@ -230,13 +225,12 @@ export default function Page() {
 
     setIsLoading(true);
     try {
-      // Usar Promise.all para fazer os uploads em paralelo
       await Promise.all(files.map(async (file) => {
         const blob = await uploadFile(file);
         setter(prev => [...prev, { id: blob.url, url: blob.url }]);
       }));
     } catch (error) {
-       // O modal de erro já é mostrado dentro de uploadFile
+       setModal({ isOpen: true, message: error.message });
     } finally {
       setIsLoading(false);
     }

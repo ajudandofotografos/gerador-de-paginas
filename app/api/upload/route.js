@@ -6,8 +6,18 @@ export async function POST(request) {
   const filename = searchParams.get('filename');
 
   // Verifica se o nome do ficheiro e o corpo do pedido existem
-  if (!filename || !request.body) {
-    return new NextResponse('Nome do ficheiro ou corpo do pedido em falta', { status: 400 });
+  if (!filename) {
+    return NextResponse.json(
+      { error: 'Nome do ficheiro é obrigatório.' },
+      { status: 400 }
+    );
+  }
+
+  if (!request.body) {
+    return NextResponse.json(
+      { error: 'Corpo do pedido em falta.' },
+      { status: 400 }
+    );
   }
 
   try {
@@ -20,10 +30,10 @@ export async function POST(request) {
     return NextResponse.json(blob);
 
   } catch (error) {
-    // Retorna uma mensagem de erro mais detalhada
-    return new NextResponse(
-      `Falha ao fazer upload da imagem: ${error.message}`,
-      { status: 500 },
+    // Retorna uma mensagem de erro em formato JSON
+    return NextResponse.json(
+      { error: `Falha ao fazer upload: ${error.message}` },
+      { status: 500 }
     );
   }
 }
