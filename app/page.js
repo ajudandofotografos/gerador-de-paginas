@@ -163,7 +163,7 @@ const CustomModal = ({ isOpen, message, onOk}) => {
     );
 }
 
-export default function Home() {
+export default function Page() { // CORREÇÃO: Renomeado de Home para Page
   const [formData, setFormData] = useState({
     name: '',
     niche: 'Casamentos',
