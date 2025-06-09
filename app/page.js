@@ -1,9 +1,9 @@
 'use client';
 import React, { useState } from 'react';
-// CORREÇÃO: Adicionados os ícones em falta
+import Image from 'next/image'; // NOVO: Importa o componente de Imagem otimizada
 import { Sparkles, Palette, UserCircle, Image as ImageIcon, GalleryVertical, Contact, UploadCloud, PlusCircle, BrainCircuit, Wand2, LoaderCircle, Video, List, FileQuestion } from 'lucide-react';
 
-// --- STYLES ---
+// --- STYLES (Sem alterações) ---
 const GlobalStyles = () => (
   <style dangerouslySetInnerHTML={{ __html: `
     body {
@@ -75,22 +75,24 @@ const GlobalStyles = () => (
   `}}/>
 );
 
-// --- HELPER DATA ---
-const niches = [
-  "Casamentos", "Ensaios (Gestante, Família)", "Newborn (Recém-nascido)", "Eventos Sociais (Aniversários)",
-  "Retratos", "Moda", "Fotografia de Produto", "Gastronomia", "Arquitetura e Interiores",
-  "Pets", "Esportes", "Viagens e Paisagens", "Drones / Aérea", "Corporativo"
-];
-
-// --- COMPONENTS ---
+// --- COMPONENTES (Header alterado) ---
 const Header = () => (
   <header className="bg-[#202020] shadow-lg sticky top-0 z-40">
     <div className="container mx-auto px-4 py-6 flex justify-center items-center">
-      <img src="https://static.wixstatic.com/media/c0ce7e_e18be92cf79744e59649b4f76cda50ec~mv2.png" alt="Logotipo do Projeto" className="h-20" />
+      {/* ALTERADO: Trocado <img> por <Image> para otimização */}
+      <Image 
+        src="https://static.wixstatic.com/media/c0ce7e_e18be92cf79744e59649b4f76cda50ec~mv2.png" 
+        alt="Logotipo do Projeto" 
+        width={200} 
+        height={80}
+        priority={true} // Adicionado priority para a imagem principal (LCP)
+        className="h-20 w-auto"
+      />
     </div>
   </header>
 );
 
+// Demais componentes auxiliares (Sidebar, FormSection, Input, etc.) sem alterações...
 const Sidebar = () => {
     const sections = [
         { id: 'section-1', name: 'Estilo e Nicho', icon: <Sparkles className="mr-3 w-5 h-5" /> },
@@ -117,7 +119,6 @@ const Sidebar = () => {
         </aside>
     );
 };
-
 const FormSection = ({ id, title, icon, children }) => (
     <section id={id} className="bg-[#202020] p-8 rounded-xl shadow-lg form-section">
         <h2 className="text-2xl font-bold mb-6 flex items-center text-white">
@@ -127,14 +128,12 @@ const FormSection = ({ id, title, icon, children }) => (
         {children}
     </section>
 );
-
 const Input = ({ id, label, placeholder, value, onChange, type = 'text', name, ...props }) => (
     <div>
         <label htmlFor={id} className="font-semibold block mb-1 text-gray-300">{label}</label>
         <input type={type} id={id} name={name || id} placeholder={placeholder} value={value} onChange={onChange} className="w-full p-3 bg-[#282828] border border-[#b19f8e] rounded-lg text-white focus:ring-2 focus:ring-custom placeholder-gray-500" {...props} />
     </div>
 );
-
 const Select = ({ id, label, value, onChange, children }) => (
     <div>
         <label htmlFor={id} className="font-semibold block mb-1 text-gray-300">{label}</label>
@@ -143,14 +142,12 @@ const Select = ({ id, label, value, onChange, children }) => (
         </select>
     </div>
 );
-
 const Textarea = ({ id, label, placeholder, value, onChange, rows=5 }) => (
      <div>
         <label htmlFor={id} className="font-semibold block mb-1 text-gray-300">{label}</label>
         <textarea id={id} name={id} rows={rows} placeholder={placeholder} value={value} onChange={onChange} className="w-full p-3 bg-[#282828] border border-[#b19f8e] rounded-lg text-white focus:ring-2 focus:ring-custom placeholder-gray-500"></textarea>
     </div>
 );
-
 const CustomModal = ({ isOpen, message, onOk}) => {
     if(!isOpen) return null;
 
@@ -165,6 +162,8 @@ const CustomModal = ({ isOpen, message, onOk}) => {
         </div>
     );
 }
+
+// --- COMPONENTE PRINCIPAL (Page) ---
 
 export default function Page() {
   const [formData, setFormData] = useState({
@@ -195,24 +194,24 @@ export default function Page() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Funções de manipulação de lista (sem alterações)...
   const handleListChange = (index, event, list, setter) => {
     const { name, value } = event.target;
     const newList = [...list];
     newList[index][name] = value;
     setter(newList);
   };
-  
   const addListItem = (setter) => {
     setter(prev => [...prev, {id: Date.now(), title: '', description: ''}]);
   }
   const addFaqItem = (setter) => {
     setter(prev => [...prev, {id: Date.now(), question: '', answer: ''}]);
   }
-
   const removeListItem = (id, setter) => {
     setter(prev => prev.filter(item => item.id !== id));
   }
   
+  // Funções de upload (sem alterações)...
   const uploadFile = async (file) => {
     const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${file.name.replace(/\s+/g, '-')}`;
     
@@ -231,21 +230,19 @@ export default function Page() {
       throw error;
     }
   };
-
-  const handleSingleUpload = async (e) => {
+  const handleSingleUpload = async (e, setter) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setIsLoading(true);
     try {
       const blob = await uploadFile(file);
-      setLogoUrl(blob.url);
+      setter(blob.url);
     } catch (error) {
       // O modal de erro já é mostrado dentro de uploadFile
     } finally {
       setIsLoading(false);
     }
   };
-
   const handleMultipleUpload = async (e, setter) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -263,9 +260,14 @@ export default function Page() {
     }
   };
   
+  // Função para remover foto da galeria
+  const removePhoto = (photoId, listSetter) => {
+      listSetter(prev => prev.filter(p => p.id !== photoId));
+  }
+  
   const handleGeneratePage = async () => {
     if (!formData.name) {
-        setModal({ isOpen: true, message: 'O campo "Nome do Estúdio" é obrigatório.'});
+        setModal({ isOpen: true, message: 'O campo "Nome do Fotógrafo / Estúdio" é obrigatório.'});
         return;
     }
      if (galleryPhotoUrls.length < 1) {
@@ -303,7 +305,8 @@ export default function Page() {
         
         const rootDomain = window.location.host.includes('localhost') ? 'propostalab.app' : window.location.host.split('.').slice(-2).join('.');
         const pageUrl = `https://${result.slug}.${rootDomain}`;
-        // CORREÇÃO FINAL: Usa aspas simples dentro do atributo href para evitar erro do linter da Vercel
+
+        // **** CORREÇÃO CRÍTICA APLICADA AQUI ****
         const successMessage = `Página guardada com sucesso! <br><br> <a href='${pageUrl}' target='_blank' class='text-[#bb9978] font-bold hover:underline'>Visite a sua página em ${pageUrl}</a>`;
         setModal({ isOpen: true, message: successMessage });
 
@@ -335,13 +338,14 @@ export default function Page() {
                   <div>
                      <label className="font-semibold block mb-2 text-gray-300">Seu Logotipo (Opcional)</label>
                       <label className="w-48 h-48 border-2 border-dashed border-[#b19f8e] rounded-lg flex items-center justify-center bg-[#282828] text-gray-500 relative cursor-pointer hover:bg-gray-700">
-                         {logoUrl ? <img src={logoUrl} alt="Prévia do Logo" className="max-w-full max-h-full object-contain p-2"/> : 
+                         {/* ALTERADO: Trocado <img> por <Image> para otimização */}
+                         {logoUrl ? <Image src={logoUrl} alt="Prévia do Logo" layout="fill" objectFit="contain" className="p-2 rounded-lg"/> : 
                           <div className="text-center">
                               <UploadCloud className="mx-auto w-10 h-10"/>
                               <p>Clique para enviar</p>
                           </div>
                          }
-                          <input type="file" className="hidden" onChange={handleSingleUpload} />
+                          <input type="file" className="hidden" onChange={(e) => handleSingleUpload(e, setLogoUrl)} />
                      </label>
                   </div>
               </FormSection>
@@ -352,7 +356,8 @@ export default function Page() {
                      <div>
                         <label className="font-semibold block mb-2 text-gray-300">Foto para a Secção "Sobre Mim"</label>
                         <label className="w-48 h-64 border-2 border-dashed border-[#b19f8e] rounded-lg flex items-center justify-center bg-[#282828] text-gray-500 relative cursor-pointer hover:bg-gray-700">
-                             {aboutImageUrl ? <img src={aboutImageUrl} alt="Foto sobre" className="w-full h-full object-cover rounded-lg"/> : 
+                             {/* ALTERADO: Trocado <img> por <Image> para otimização */}
+                             {aboutImageUrl ? <Image src={aboutImageUrl} alt="Foto sobre" layout="fill" objectFit="cover" className="rounded-lg"/> : 
                               <div className="text-center p-2">
                                   <ImageIcon className="mx-auto w-10 h-10"/>
                                   <p>Foto Sobre</p>
@@ -396,13 +401,14 @@ export default function Page() {
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                          {galleryPhotoUrls.map(photo => (
                           <div key={photo.id} className="image-preview-item aspect-square">
-                              <img src={photo.url} alt="Foto da galeria" className="w-full h-full object-cover" />
+                              {/* ALTERADO: Trocado <img> por <Image> para otimização */}
+                              <Image src={photo.url} alt="Foto da galeria" layout="fill" objectFit="cover" />
                               <div className="overlay">
-                                <button onClick={() => removePhoto(photo.id, 'gallery')}>Excluir</button>
+                                <button onClick={() => removePhoto(photo.id, setGalleryPhotoUrls)}>Excluir</button>
                               </div>
                           </div>
                         ))}
-                        <label className="w-full h-32 border-2 border-dashed border-[#b19f8e] rounded-lg flex items-center justify-center bg-[#282828] text-gray-500 cursor-pointer hover:bg-gray-700 transition">
+                        <label className="w-full aspect-square border-2 border-dashed border-[#b19f8e] rounded-lg flex items-center justify-center bg-[#282828] text-gray-500 cursor-pointer hover:bg-gray-700 transition">
                              <div className="text-center"><PlusCircle className="mx-auto w-8 h-8" /><p className="text-sm">Adicionar fotos</p></div>
                              <input type="file" className="hidden" multiple onChange={(e) => handleMultipleUpload(e, setGalleryPhotoUrls)} />
                         </label>
